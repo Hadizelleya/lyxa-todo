@@ -103,9 +103,7 @@ export default function TodoItem({ todo }) {
         {todo.status}
       </div>
 
-      <h3 className="font-bold text-(--color-primary) mb-2 line-clamp-2">
-        {todo.title}
-      </h3>
+      <h3 className="font-bold text-black mb-2 line-clamp-2">{todo.title}</h3>
 
       <p className="text-gray-600 text-sm mb-3 line-clamp-3">
         {todo.description}

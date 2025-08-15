@@ -19,7 +19,7 @@ export default function ContextMenu({
   const handleEdit = () => {
     setEditModalOpened(true);
     setShowContextMenu(false);
-    setTodoToEdit(todo);
+    setTodoToEdit({ ...todo });
   };
   return (
     <div

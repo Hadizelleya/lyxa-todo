@@ -1,12 +1,1 @@
 @import "tailwindcss";
-
-:root {
-  --color-primary: ;
-  --color-secondary: ;
-  --color-new: ;
-  --color-ongoing: ;
-  --color-completed: ;
-  --color-white: white;
-  --color-black: black;
-  --color-gray: gray;
-}

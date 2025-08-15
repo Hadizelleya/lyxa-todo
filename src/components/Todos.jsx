@@ -62,7 +62,7 @@ export default function Todos() {
       <div className="min-h-screen h-full relative bg-gradiend-to-br from-blue-100 to-indigo-300 p-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-(--color-primary) ">
+            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-br from-blue-800 to-red-500 text-transparent bg-clip-text">
               LYXA Task
             </h1>
           </div>

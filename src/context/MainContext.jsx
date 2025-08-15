@@ -4,7 +4,7 @@ export const MainContext = createContext();
 
 const MainContextProvider = ({ children }) => {
   const [editModalOpened, setEditModalOpened] = useState(false);
-  const [todoToEdit, setTodoToEdit] = useState(null);
+  const [todoToEdit, setTodoToEdit] = useState({});
 
   return (
     <MainContext.Provider
