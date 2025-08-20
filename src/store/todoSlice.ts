@@ -1,11 +1,34 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  Todo,
+  TodoState,
+  AddTodoPayload,
+  MoveTodoPayload,
+  SetDueDatePayload,
+  UpdateTodoPayload,
+} from "../types";
+import { STORAGE_KEYS } from "../constants";
+import { getCurrentISOString, isDateOverdue } from "../utils/dateUtils";
 
-const getSavedTodos = () => {
-  const savedTodos = localStorage.getItem("todos");
-  return savedTodos ? JSON.parse(savedTodos) : [];
+const getSavedTodos = (): Todo[] => {
+  try {
+    const savedTodos = localStorage.getItem(STORAGE_KEYS.TODOS);
+    return savedTodos ? JSON.parse(savedTodos) : [];
+  } catch (error) {
+    console.error("Failed to load todos:", error);
+    return [];
+  }
 };
 
-const initialState = {
+const saveTodos = (todos: Todo[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.TODOS, JSON.stringify(todos));
+  } catch (error) {
+    console.error("Failed to save todos:", error);
+  }
+};
+
+const initialState: TodoState = {
   todos: getSavedTodos(),
 };
 
@@ -13,22 +36,22 @@ const todoSlice = createSlice({
   name: "todos",
   initialState,
   reducers: {
-    addTodo: (state, action) => {
-      const newTodo = {
+    addTodo: (state, action: PayloadAction<AddTodoPayload>) => {
+      const newTodo: Todo = {
         id: crypto.randomUUID(),
         title: action.payload.title,
         description: action.payload.description,
         status: "New",
-        createdAt: new Date().toISOString(),
+        createdAt: getCurrentISOString(),
         dueDate: null,
         isOverdue: false,
       };
 
       state.todos.unshift(newTodo);
-      localStorage.setItem("todos", JSON.stringify(state.todos));
+      saveTodos(state.todos);
     },
 
-    moveTodo: (state, action) => {
+    moveTodo: (state, action: PayloadAction<MoveTodoPayload>) => {
       const { id, newStatus, position } = action.payload;
       const todoIndex = state.todos.findIndex((todo) => todo.id === id);
       if (todoIndex !== -1) {
@@ -38,7 +61,7 @@ const todoSlice = createSlice({
 
         todo.status = newStatus;
         if (newStatus === "Done") {
-          todo.completedAt = new Date().toISOString();
+          todo.completedAt = getCurrentISOString();
         }
 
         const targetTodos = state.todos.filter((t) => t.status === newStatus);
@@ -72,45 +95,39 @@ const todoSlice = createSlice({
           state.todos.unshift(todo);
         }
       }
-      localStorage.setItem("todos", JSON.stringify(state.todos));
+      saveTodos(state.todos);
     },
 
-    setDueDate: (state, action) => {
+    setDueDate: (state, action: PayloadAction<SetDueDatePayload>) => {
       const { id, dueDate } = action.payload;
       const todo = state.todos.find((todo) => todo.id === id);
       if (todo) {
         todo.dueDate = dueDate;
       }
-      localStorage.setItem("todos", JSON.stringify(state.todos));
+      saveTodos(state.todos);
     },
 
     checkOverdue: (state) => {
-      const now = new Date();
       state.todos.forEach((todo) => {
-        if (todo.dueDate && todo.status === "Ongoing") {
-          const dueDate = new Date(todo.dueDate);
-          todo.isOverdue = now > dueDate;
-        } else {
-          todo.isOverdue = false;
-        }
+        todo.isOverdue = isDateOverdue(todo.dueDate, todo.status);
       });
-      localStorage.setItem("todos", JSON.stringify(state.todos));
+      saveTodos(state.todos);
     },
 
-    updateTodo: (state, action) => {
+    updateTodo: (state, action: PayloadAction<UpdateTodoPayload>) => {
       const { id, title, description, dueDate } = action.payload;
       const todo = state.todos.find((todo) => todo.id === id);
       if (todo) {
         todo.title = title || todo.title;
         todo.description = description || todo.description;
-        todo.dueDate = dueDate || todo.dueDate;
+        todo.dueDate = dueDate !== undefined ? dueDate : todo.dueDate;
       }
-      localStorage.setItem("todos", JSON.stringify(state.todos));
+      saveTodos(state.todos);
     },
 
-    deleteTodo: (state, action) => {
+    deleteTodo: (state, action: PayloadAction<string>) => {
       state.todos = state.todos.filter((todo) => todo.id !== action.payload);
-      localStorage.setItem("todos", JSON.stringify(state.todos));
+      saveTodos(state.todos);
     },
   },
 });

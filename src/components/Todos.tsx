@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { checkOverdue, moveTodo } from "../store/todoSlice";
-import { FiAlertCircle, FiCheckCircle, FiClock, FiPlus } from "react-icons/fi";
+import { FiPlus } from "react-icons/fi";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Category from "./Category";
 import AddTodoModal from "./AddTodoModal";
 import EditTodoModal from "./EditTodoModal";
+import Alert from "./ui/Alert";
+import { RootState, AppDispatch } from "../types";
+import { CATEGORY_CONFIGS } from "../constants";
+import { getOverdueTodos } from "../utils/todoUtils";
 
-export default function Todos() {
-  const dispatch = useDispatch();
-  const todos = useSelector((state) => state.todos.todos);
-  const [isModalOpened, setIsModalOpened] = useState(false);
+const Todos: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const todos = useSelector((state: RootState) => state.todos.todos);
+  const [isModalOpened, setIsModalOpened] = useState<boolean>(false);
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       dispatch(checkOverdue());
@@ -22,39 +27,11 @@ export default function Todos() {
     return () => clearInterval(intervalId);
   }, [dispatch]);
 
-  const handleDrop = (todoId, newStatus, position) => {
-    dispatch(moveTodo({ id: todoId, newStatus, position }));
+  const handleDrop = (todoId: string, newStatus: string, position?: number) => {
+    dispatch(moveTodo({ id: todoId, newStatus: newStatus as any, position }));
   };
 
-  const categories = [
-    {
-      status: "New",
-      title: "New Tasks",
-      color: "bg-blue-500",
-      icon: FiAlertCircle,
-      showAddForm: true,
-      textColor: "text-blue-500",
-    },
-    {
-      status: "Ongoing",
-      title: "In Progress",
-      color: "bg-orange-500",
-      icon: FiClock,
-      showAddForm: false,
-      textColor: "text-orange-500",
-    },
-    {
-      status: "Done",
-      title: "Completed Tasks",
-      color: "bg-green-500",
-      icon: FiCheckCircle,
-      showAddForm: false,
-      textColor: "text-green-500",
-    },
-  ];
-
-  const overdueTodos = todos.filter((todo) => todo.isOverdue);
-
+  const overdueTodos = getOverdueTodos(todos);
   const showOverdueAlert = overdueTodos.length > 0;
 
   return (
@@ -67,15 +44,11 @@ export default function Todos() {
             </h1>
           </div>
 
-          {showOverdueAlert && (
-            <div className="mb-6 bg-red-100 border border-red-400 text-red-600 px-4 py-3 rounded-lg flex items-center gap-2">
-              <FiAlertCircle className="text-xl" />
-              <span className="font-medium">
-                {overdueTodos.length} Task{overdueTodos.length > 1 ? "s" : ""}{" "}
-                {overdueTodos.length > 1 ? "are Overdue" : "is Overdue"}
-              </span>
-            </div>
-          )}
+          <Alert
+            message={overdueTodos.length > 1 ? "are Overdue" : "is Overdue"}
+            count={overdueTodos.length}
+            isVisible={showOverdueAlert}
+          />
 
           <AddTodoModal
             setIsModalOpened={setIsModalOpened}
@@ -83,7 +56,7 @@ export default function Todos() {
           />
           <EditTodoModal />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
+            {CATEGORY_CONFIGS.map((category) => (
               <Category
                 key={category.status}
                 status={category.status}
@@ -107,7 +80,7 @@ export default function Todos() {
           </div>
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => {
+            {CATEGORY_CONFIGS.map((category) => {
               const count = todos.filter(
                 (todo) => todo.status === category.status
               ).length;
@@ -135,4 +108,6 @@ export default function Todos() {
       </div>
     </DndProvider>
   );
-}
+};
+
+export default Todos;

@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import Todos from "./components/Todos";
 import MainContextProvider from "./context/MainContext";
 
-export default function App() {
+const App: React.FC = () => {
   return (
     <Provider store={store}>
       <MainContextProvider>
@@ -12,4 +12,6 @@ export default function App() {
       </MainContextProvider>
     </Provider>
   );
-}
+};
+
+export default App;

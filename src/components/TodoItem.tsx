@@ -1,20 +1,34 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useRef } from "react";
 import { useDrag } from "react-dnd";
 import { useDispatch } from "react-redux";
 import { deleteTodo, moveTodo, setDueDate } from "../store/todoSlice";
 import { FiClock } from "react-icons/fi";
 import ContextMenu from "./ContextMenu";
-import EditTodoModal from "./EditTodoModal";
+import { Todo, AppDispatch } from "../types";
+import { STATUS_COLORS } from "../constants";
+import { getStatusOptions } from "../utils/todoUtils";
+import { formatDate } from "../utils/dateUtils";
+import { useClickOutside } from "../hooks/useClickOutside";
 
-export default function TodoItem({ todo }) {
-  const dispatch = useDispatch();
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [showDueDatePicker, setShowDueDatePicker] = useState(false);
-  const [contextMenuPosition, setContextMenuPosition] = useState({
-    x: 0,
-    y: 0,
-  });
-  const contextMenuRef = useRef(null);
+interface TodoItemProps {
+  todo: Todo;
+}
+
+interface ContextMenuPosition {
+  x: number;
+  y: number;
+}
+
+const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
+  const [showDueDatePicker, setShowDueDatePicker] = useState<boolean>(false);
+  const [contextMenuPosition, setContextMenuPosition] =
+    useState<ContextMenuPosition>({
+      x: 0,
+      y: 0,
+    });
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   const [{ isDragging }, drag] = useDrag({
     type: "TODO_CARD",
@@ -24,69 +38,34 @@ export default function TodoItem({ todo }) {
     }),
   });
 
-  const statusColors = {
-    New: "bg-blue-100 border-blue-300 text-blue-800",
-    Ongoing: "bg-orange-100 border-orange-300 text-orange-800",
-    Done: "bg-green-100 border-green-300 text-green-800",
-  };
-
-  const getStatusOptions = (currentStatus) => {
-    const allStatus = ["New", "Ongoing", "Done"];
-    return allStatus.filter((status) => status !== currentStatus);
-  };
-
-  const handleContextMenu = (e) => {
+  const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     setContextMenuPosition({ x: e.clientX, y: e.clientY });
     setShowContextMenu(true);
   };
 
-  const handleMoveToStatus = (newStatus) => {
+  const handleMoveToStatus = (newStatus: Todo["status"]) => {
     dispatch(moveTodo({ id: todo.id, newStatus }));
     setShowContextMenu(false);
   };
 
-  const handleDeleteTask = (e) => {
+  const handleDeleteTask = () => {
     dispatch(deleteTodo(todo.id));
     setShowContextMenu(false);
   };
 
-  const handleDueDateChange = (e) => {
+  const handleDueDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setDueDate({ id: todo.id, dueDate: e.target.value }));
   };
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        contextMenuRef.current &&
-        !contextMenuRef.current.contains(e.target)
-      ) {
-        setShowContextMenu(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-UK", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h12",
-    });
-  };
+  useClickOutside(contextMenuRef, () => setShowContextMenu(false));
 
   return (
     <div
       className={`relative bg-white rounded-lg shadow-md p-4 mb-3 cursor-move transition-all duration-300 hover:shadow-lg ${
         isDragging ? "opacity-50 scale-90" : ""
       } ${todo.isOverdue ? "bg-red-50 border  border-red-400" : ""}`}
-      ref={drag}
+      ref={drag as any}
       onContextMenu={handleContextMenu}
     >
       {todo.isOverdue && (
@@ -97,7 +76,7 @@ export default function TodoItem({ todo }) {
 
       <div
         className={` inline-block px-2 py-1 rounded-full text-sm font-medium mb-2 ${
-          statusColors[todo.status]
+          STATUS_COLORS[todo.status]
         }`}
       >
         {todo.status}
@@ -142,4 +121,6 @@ export default function TodoItem({ todo }) {
       )}
     </div>
   );
-}
+};
+
+export default TodoItem;

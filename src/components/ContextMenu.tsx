@@ -1,8 +1,22 @@
-import React, { useContext } from "react";
+import React from "react";
 import { FiClock, FiEdit, FiTrash } from "react-icons/fi";
-import { MainContext } from "../context/MainContext";
+import { Todo } from "../types";
+import { useTodoContext } from "../hooks/useTodoContext";
 
-export default function ContextMenu({
+interface ContextMenuProps {
+  contextMenuRef: React.RefObject<HTMLDivElement | null>;
+  getStatusOptions: (currentStatus: Todo["status"]) => Todo["status"][];
+  handleMoveToStatus: (newStatus: Todo["status"]) => void;
+  showDueDatePicker: boolean;
+  handleDueDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  contextMenuPosition: { x: number; y: number };
+  setShowDueDatePicker: (show: boolean) => void;
+  handleDelete: () => void;
+  todo: Todo;
+  setShowContextMenu: (show: boolean) => void;
+}
+
+const ContextMenu: React.FC<ContextMenuProps> = ({
   contextMenuRef,
   getStatusOptions,
   handleMoveToStatus,
@@ -13,14 +27,15 @@ export default function ContextMenu({
   handleDelete,
   todo,
   setShowContextMenu,
-}) {
-  const { setEditModalOpened, setTodoToEdit } = useContext(MainContext);
+}) => {
+  const { setEditModalOpened, setTodoToEdit } = useTodoContext();
 
   const handleEdit = () => {
     setEditModalOpened(true);
     setShowContextMenu(false);
     setTodoToEdit({ ...todo });
   };
+
   return (
     <div
       ref={contextMenuRef}
@@ -82,4 +97,6 @@ export default function ContextMenu({
       </div>
     </div>
   );
-}
+};
+
+export default ContextMenu;

@@ -6,3 +6,5 @@ export const store = configureStore({
     todos: todoReducer,
   },
 });
+
+export type AppDispatch = typeof store.dispatch;

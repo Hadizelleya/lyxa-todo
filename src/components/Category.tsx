@@ -3,8 +3,28 @@ import { useDrop } from "react-dnd";
 import { useSelector } from "react-redux";
 import { FaBeerMugEmpty } from "react-icons/fa6";
 import TodoItem from "./TodoItem";
+import { RootState, Todo } from "../types";
 
-function DropZone({ position, status }) {
+interface DropResult {
+  position?: number;
+}
+
+interface DropZoneProps {
+  position: number;
+  status: Todo["status"];
+}
+
+interface CategoryProps {
+  status: Todo["status"];
+  title: string;
+  color: string;
+  onDrop: (todoId: string, newStatus: string, position?: number) => void;
+  showAddForm?: boolean;
+  children?: React.ReactNode;
+  countColor: string;
+}
+
+const DropZone: React.FC<DropZoneProps> = ({ position }) => {
   const [{ isOver }, drop] = useDrop({
     accept: "TODO_CARD",
     drop: () => ({ position }),
@@ -15,7 +35,7 @@ function DropZone({ position, status }) {
 
   return (
     <div
-      ref={drop}
+      ref={drop as any}
       className={`h-4 transition-all duration-200 border-2 border-dashed ${
         isOver
           ? "bg-blue-100 border-blue-400 rounded"
@@ -23,27 +43,26 @@ function DropZone({ position, status }) {
       }`}
     />
   );
-}
+};
 
-export default function Category({
+const Category: React.FC<CategoryProps> = ({
   status,
   title,
   color,
   onDrop,
   showAddForm = false,
-  onAddTodo = null,
   children,
   countColor,
-}) {
-  const allTodos = useSelector((state) => state.todos.todos);
-  const todosContainerRef = useRef(null);
+}) => {
+  const allTodos = useSelector((state: RootState) => state.todos.todos);
+  const todosContainerRef = useRef<HTMLDivElement>(null);
 
   const todos = allTodos.filter((todo) => todo.status === status);
 
   const [{ isOver }, drop] = useDrop({
     accept: "TODO_CARD",
-    drop: (task, monitor) => {
-      const dropResult = monitor.getDropResult();
+    drop: (task: any, monitor) => {
+      const dropResult = monitor.getDropResult() as DropResult;
       if (dropResult) {
         onDrop(task.id, status, dropResult.position);
       } else {
@@ -57,7 +76,7 @@ export default function Category({
 
   return (
     <div
-      ref={drop}
+      ref={drop as any}
       className={`flex-1 bg-white shadow-2xl rounded-lg p-4 ${
         isOver ? "bg-gray-100" : ""
       }`}
@@ -97,4 +116,6 @@ export default function Category({
       )}
     </div>
   );
-}
+};
+
+export default Category;
